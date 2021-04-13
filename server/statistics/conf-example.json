@@ -1,0 +1,6 @@
+{
+  "domain": "https://taxi-routeinfo.taxi.yandex.net/taxi_info",
+  "clid": "your_clid",
+  "apikey": "your_apikey",
+  "class": "econom"
+}
