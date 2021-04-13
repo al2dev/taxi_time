@@ -8,7 +8,7 @@ from openpyxl import Workbook
 
 
 def get_conf() -> tuple:
-    file_conf = open('config.json', 'r')
+    file_conf = open('conf.json', 'r')
     conf = json.load(file_conf)
     file_conf.close()
     domain = conf.pop('domain')
