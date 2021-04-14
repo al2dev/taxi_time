@@ -9,10 +9,17 @@ from openpyxl import Workbook
 
 def get_conf() -> tuple:
     file_conf = open('conf.json', 'r')
+    file_rout = open('routes.json', 'r')
+
     conf = json.load(file_conf)
+    rout = json.load(file_rout)
+
     file_conf.close()
+    file_rout.close()
+
     domain = conf.pop('domain')
-    routes = [["30.214610,60.003559~30.338024,60.012473", "30.338024,60.012473~30.214610,60.003559"]]
+    routes = rout.pop('routes_id')
+
     return domain, conf, routes
 
 
@@ -36,13 +43,19 @@ def write_data(book: Workbook(), row: int, data: list) -> None:
     book.append(data)
 
 
-def main_function(url, params, routes):
+def crete_sheets(routes: dict) -> tuple:
     wb = Workbook()
-    now = datetime.now()
+    return wb, [wb.create_sheet(f'id{num}') for num, route in routes.items() if route['enable']]
 
-    ws_forth = wb.create_sheet('forth')
-    ws_back = wb.create_sheet('back')
+
+def main_function():
+    day = date.today()
+    now = datetime.now()
     timestamp_start = f'{now.hour}-{now.minute}'
+
+    url, params, routes = get_conf()
+
+    wb, wss = crete_sheets(routes)
 
     def signal_handler(*args):
         now = datetime.now()
@@ -50,28 +63,38 @@ def main_function(url, params, routes):
         wb.save(f"data/{str(date.today())} data({timestamp_start} {timestamp_end}).xlsx")
         sys.exit()
 
-    # release for local machine
-    # signal.signal(signal.SIGINT, signal_handler)
-    
-    # release for server
     signal.signal(signal.SIGTERM, signal_handler)
 
     row = 1
     while True:
-        for route in routes:
-            params["rll"] = route[0]
-            result = get_price(url, params)
-            print(result)
-            write_data(ws_forth, row, result)
+        if day == date.today():
+            for num, route in routes.items():
+                start_point = f"{route.get('first_point')[0]},{route.get('first_point')[1]}"
+                end_point = f"{route.get('end_point')[0]},{route.get('end_point')[1]}"
 
-            params["rll"] = route[1]
-            result = get_price(url, params)
-            print(result)
-            write_data(ws_back, row, result)
-        row += 1
-        time.sleep(60)
+                params['rll'] = f"{start_point}~{end_point}"
+                result = get_price(url, params)
+                params['rll'] = f"{end_point}~{start_point}"
+                result.extend(get_price(url, params))
+
+                print(result)
+
+                write_data(wss[int(num)], row, result)
+
+                row += 1
+                time.sleep(60)
+
+        else:
+            now = datetime.now()
+            wb.save(f"data/{str(day)} data({timestamp_start} {now.hour}-{now.minute}).xlsx")
+
+            url, params, routes = get_conf()
+            wb, wss = crete_sheets(routes)
+
+            day = date.today()
+            now = datetime.now()
+            timestamp_start = f'{now.hour}-{now.minute}'
 
 
 if __name__ == '__main__':
-    a, b, c = get_conf()
-    main_function(a, b, c)
+    main_function()

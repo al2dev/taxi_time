@@ -1,0 +1,11 @@
+{
+  "routes_id": {
+    "0": {
+      "enable": 1,
+      "first_point": [30.214610, 60.003559],
+      "end_point": [30.338024, 60.012473],
+      "description": "",
+      "timestamp": 1618401210
+    }
+  }
+}
