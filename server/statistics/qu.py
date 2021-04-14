@@ -50,7 +50,11 @@ def main_function(url, params, routes):
         wb.save(f"data/{str(date.today())} data({timestamp_start} {timestamp_end}).xlsx")
         sys.exit()
 
-    signal.signal(signal.SIGINT, signal_handler) # Or whatever signal
+    # release for local machine
+    # signal.signal(signal.SIGINT, signal_handler)
+    
+    # release for server
+    signal.signal(signal.SIGTERM, signal_handler)
 
     row = 1
     while True:
