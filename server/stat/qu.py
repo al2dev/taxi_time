@@ -60,7 +60,9 @@ def main_function():
     def signal_handler(*args):
         now = datetime.now()
         timestamp_end = f'{now.hour}-{now.minute}'
-        wb.save(f"data/{str(date.today())} data({timestamp_start} {timestamp_end}).xlsx")
+        file_name = f"data/{str(date.today())} data({timestamp_start} {timestamp_end}).xlsx"
+        wb.save(file_name)
+        print(file_name)
         sys.exit()
 
     signal.signal(signal.SIGTERM, signal_handler)
