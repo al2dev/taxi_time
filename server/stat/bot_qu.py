@@ -14,9 +14,10 @@ TCONF_FILE = 'tbot_conf.json'
 
 
 # Paths
-ABS_MODULE_PATH = path.abspath('')
-ABS_DATA_STORAGE_PATH = path.abspath('data')
-ABS_TCONF_FILE_PATH = '\\'.join([ABS_MODULE_PATH, TCONF_FILE]) if platform.system() == 'Windows' else '/'.join([ABS_MODULE_PATH, TCONF_FILE])
+ABS_MODULE_PATH = path.dirname(path.realpath(__file__))
+ABS_DATA_STORAGE_PATH = path.join(ABS_MODULE_PATH, 'data')
+ABS_TCONF_FILE_PATH = path.join(ABS_MODULE_PATH, TCONF_FILE)
+
 
 file_conf = open(ABS_TCONF_FILE_PATH, 'r')
 conf = load(file_conf)

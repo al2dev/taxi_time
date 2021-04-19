@@ -3,7 +3,6 @@ import sys
 import time
 import json
 import os
-import platform
 from requests import get
 from datetime import date, datetime
 from openpyxl import Workbook
@@ -16,12 +15,11 @@ ROUTES_FILE = 'routes.json'
 
 
 # Paths
-ABS_MODULE_PATH = os.path.abspath('')
-ABS_DATA_STORAGE_PATH = os.path.abspath('data')
-ABS_TO_SAVE_PATH = '\\'.join([ABS_DATA_STORAGE_PATH, '\\']) if platform.system() == 'Windows' else '/'.join([ABS_DATA_STORAGE_PATH, '/'])
-ABS_CONF_FILE_PATH = '\\'.join([ABS_MODULE_PATH, CONF_FILE]) if platform.system() == 'Windows' else '/'.join([ABS_MODULE_PATH, CONF_FILE])
-ABS_TCONF_FILE_PATH = '\\'.join([ABS_MODULE_PATH, TCONF_FILE]) if platform.system() == 'Windows' else '/'.join([ABS_MODULE_PATH, TCONF_FILE])
-ABS_ROUTES_FILE_PATH = '\\'.join([ABS_MODULE_PATH, ROUTES_FILE]) if platform.system() == 'Windows' else '/'.join([ABS_MODULE_PATH, ROUTES_FILE])
+ABS_MODULE_PATH = os.path.dirname(os.path.realpath(__file__))
+ABS_DATA_STORAGE_PATH = os.path.join(ABS_MODULE_PATH, 'data')
+ABS_CONF_FILE_PATH = os.path.join(ABS_MODULE_PATH, CONF_FILE)
+ABS_TCONF_FILE_PATH = os.path.join(ABS_MODULE_PATH, TCONF_FILE)
+ABS_ROUTES_FILE_PATH = os.path.join(ABS_MODULE_PATH, ROUTES_FILE)
 
 
 def get_conf() -> tuple:
@@ -76,8 +74,8 @@ def main_function():
     def signal_handler(*args):
         now = datetime.now()
         timestamp_end = f'{now.hour}-{now.minute}'
-        filename_to_save = f"{str(day)} data({timestamp_start} {now.hour}-{now.minute}).xlsx"
-        wb.save(ABS_TO_SAVE_PATH + filename_to_save)
+        filename = f"{str(day)} ({timestamp_start} {timestamp_end}).xlsx"
+        wb.save(os.path.join(ABS_DATA_STORAGE_PATH, filename))
         sys.exit()
 
     signal.signal(signal.SIGTERM, signal_handler)
@@ -101,8 +99,8 @@ def main_function():
 
         else:
             now = datetime.now()
-            filename_to_save = f"{str(day)} data({timestamp_start} {now.hour}-{now.minute}).xlsx"
-            wb.save(ABS_TO_SAVE_PATH + filename_to_save)
+            filename = f"{str(day)} ({timestamp_start} {now.hour}-{now.minute}).xlsx"
+            wb.save(os.path.join(ABS_DATA_STORAGE_PATH, filename))
 
             url, params, routes = get_conf()
             wb, wss = crete_sheets(routes)
