@@ -4,22 +4,41 @@ import time
 from json import load
 import telebot
 import subprocess
-from os import listdir, path
+import platform
+from os import listdir, path, system
 from os.path import isfile, join
 
 
-PATH_DATAFILE = 'data'
-file_conf = open('tbot_conf.json', 'r')
+# Name files
+TCONF_FILE = 'tbot_conf.json'
+
+
+# Paths
+ABS_MODULE_PATH = path.abspath('')
+ABS_DATA_STORAGE_PATH = path.abspath('data')
+ABS_TCONF_FILE_PATH = '\\'.join([ABS_MODULE_PATH, TCONF_FILE]) if platform.system() == 'Windows' else '/'.join([ABS_MODULE_PATH, TCONF_FILE])
+
+file_conf = open(ABS_TCONF_FILE_PATH, 'r')
 conf = load(file_conf)
+
+
 bot = telebot.TeleBot(conf.get('token'))
 
 
 @bot.message_handler(commands=['start'])
 def command_help(message):
-    run = "python3 qu.py &"
-    sub = subprocess.Popen(run, shell=True, stdout=subprocess.PIPE)
-    sub_return = sub.stdout.read()
-    bot.reply_to(message, f"Script is running.\n{sub_return}")
+    get_pid = "pgrep python3"
+    run = "(python3 qu.py &)"
+
+    sub_pid = subprocess.Popen(get_pid, shell=True, stdout=subprocess.PIPE)
+    before_pid = sub_pid.stdout.read()
+
+    system(run)
+
+    sub_pid = subprocess.Popen(get_pid, shell=True, stdout=subprocess.PIPE)
+    after_pid = sub_pid.stdout.read()
+
+    bot.reply_to(message, f"Script is running.\n{after_pid}\n{before_pid}")
 
 
 @bot.message_handler(commands=['stop'])
@@ -31,7 +50,7 @@ def command_help(message):
 
 @bot.message_handler(commands=['show'])
 def command_help(message):
-    files = '\n'.join([f for f in listdir(PATH_DATAFILE) if isfile(join(PATH_DATAFILE, f)) and 'xlsx' in f])
+    files = '\n'.join([f for f in listdir(ABS_DATA_STORAGE_PATH) if isfile(join(ABS_DATA_STORAGE_PATH, f)) and 'xlsx' in f])
     bot.reply_to(message, f"Files\n{files}")
 
 
@@ -39,7 +58,7 @@ def command_help(message):
 def command_help(message):
     user_want = message.text.split(' ', maxsplit=1)[1]
 
-    path_to_file = '/'.join([path.dirname(sys.argv[0]), PATH_DATAFILE, user_want])
+    path_to_file = '/'.join([path.dirname(sys.argv[0]), ABS_DATA_STORAGE_PATH, user_want])
 
     try:
         with open(path_to_file, "rb") as misc:

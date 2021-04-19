@@ -2,14 +2,31 @@ import signal
 import sys
 import time
 import json
+import os
+import platform
 from requests import get
 from datetime import date, datetime
 from openpyxl import Workbook
 
 
+# Name files
+CONF_FILE = 'conf.json'
+TCONF_FILE = 'tbot_conf.json'
+ROUTES_FILE = 'routes.json'
+
+
+# Paths
+ABS_MODULE_PATH = os.path.abspath('')
+ABS_DATA_STORAGE_PATH = os.path.abspath('data')
+ABS_TO_SAVE_PATH = '\\'.join([ABS_DATA_STORAGE_PATH, '\\']) if platform.system() == 'Windows' else '/'.join([ABS_DATA_STORAGE_PATH, '/'])
+ABS_CONF_FILE_PATH = '\\'.join([ABS_MODULE_PATH, CONF_FILE]) if platform.system() == 'Windows' else '/'.join([ABS_MODULE_PATH, CONF_FILE])
+ABS_TCONF_FILE_PATH = '\\'.join([ABS_MODULE_PATH, TCONF_FILE]) if platform.system() == 'Windows' else '/'.join([ABS_MODULE_PATH, TCONF_FILE])
+ABS_ROUTES_FILE_PATH = '\\'.join([ABS_MODULE_PATH, ROUTES_FILE]) if platform.system() == 'Windows' else '/'.join([ABS_MODULE_PATH, ROUTES_FILE])
+
+
 def get_conf() -> tuple:
-    file_conf = open('conf.json', 'r')
-    file_rout = open('routes.json', 'r')
+    file_conf = open(ABS_CONF_FILE_PATH, 'r')
+    file_rout = open(ABS_ROUTES_FILE_PATH, 'r')
 
     conf = json.load(file_conf)
     rout = json.load(file_rout)
@@ -35,7 +52,6 @@ def get_price(url: str, params: dict) -> list:
                      timestamp]
         return data_list
     except Exception as e:
-        print(e)
         return [0, 0, 0, timestamp]
 
 
@@ -60,9 +76,8 @@ def main_function():
     def signal_handler(*args):
         now = datetime.now()
         timestamp_end = f'{now.hour}-{now.minute}'
-        file_name = f"data/{str(date.today())} data({timestamp_start} {timestamp_end}).xlsx"
-        wb.save(file_name)
-        print(file_name)
+        filename_to_save = f"{str(day)} data({timestamp_start} {now.hour}-{now.minute}).xlsx"
+        wb.save(ABS_TO_SAVE_PATH + filename_to_save)
         sys.exit()
 
     signal.signal(signal.SIGTERM, signal_handler)
@@ -79,8 +94,6 @@ def main_function():
                 params['rll'] = f"{end_point}~{start_point}"
                 result.extend(get_price(url, params))
 
-                print(result)
-
                 write_data(wss[int(num)], row, result)
 
                 row += 1
@@ -88,7 +101,8 @@ def main_function():
 
         else:
             now = datetime.now()
-            wb.save(f"data/{str(day)} data({timestamp_start} {now.hour}-{now.minute}).xlsx")
+            filename_to_save = f"{str(day)} data({timestamp_start} {now.hour}-{now.minute}).xlsx"
+            wb.save(ABS_TO_SAVE_PATH + filename_to_save)
 
             url, params, routes = get_conf()
             wb, wss = crete_sheets(routes)
